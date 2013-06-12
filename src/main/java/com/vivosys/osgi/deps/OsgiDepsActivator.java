@@ -20,12 +20,10 @@ public class OsgiDepsActivator implements BundleActivator {
         try {
             OsgiGraphBuilder builder = new OsgiGraphBuilder();
             builder.addIgnoreBundlesMatching("org.apache.servicemix.bundles.cglib");
-            builder.addIgnoreBundlesMatching("com.citi.edelng.edel-common");
-            builder.addIgnoreBundlesMatching("com.citi.edelng.edel-bl-.*");
             builder.addIgnoreServicesMatching("org.springframework.osgi.*");
-            builder.addStripFromBundleName("com.citi.edelng.");
-            builder.addStripFromServiceName("com.citi.edelng.engine.procman.api.module.");
-            builder.addStripFromServiceName("com.citi.edelng.");
+            // to make names shorter, given prefix text can be stripped from bundle names
+            builder.addStripFromBundleName("com.vivosys.");
+            // to make names shorter, given prefix text can be stripped from service names
             builder.addStripFromServiceName("org.springframework.data.mongodb.");
             builder.addStripFromServiceName("org.springframework.integration.");
             graph = builder.buildGraph(bundleContext, 50);
