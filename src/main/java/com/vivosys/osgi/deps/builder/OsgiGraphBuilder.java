@@ -68,6 +68,10 @@ public class OsgiGraphBuilder {
         this.stripFromBundleName.add(stripFromBundleName);
     }
 
+    private String getName(Bundle b){
+        return b.getSymbolicName() == null ? String.valueOf(b.getBundleId()) : b.getSymbolicName();
+    }
+
     public Graph buildGraph(BundleContext bundleContext, int minStartLevel) {
         final ServiceReference packageAdminRef = bundleContext.getServiceReference(SERVICE_PACKAGE_ADMIN);
         final ServiceReference startLevelRef = bundleContext.getServiceReference(SERVICE_STARTLEVEL);
@@ -84,7 +88,7 @@ public class OsgiGraphBuilder {
         Bundle[] bundles = bundleContext.getBundles();
         if(bundles != null) for(Bundle b : bundles) {
             if(startLevel.getBundleStartLevel(b) < minStartLevel ||
-                ! accept(b.getSymbolicName(), acceptBundlesMatching, ignoreBundlesMatching)) continue;
+                ! accept(getName(b), acceptBundlesMatching, ignoreBundlesMatching)) continue;
             final ServiceReference[] registeredServices = b.getRegisteredServices();
             Vertex bundleVertex;
             Graph bundleGraph = graph;
@@ -103,7 +107,7 @@ public class OsgiGraphBuilder {
                 bundleGraph = new Graph(bundleGraphVertex);
                 bundleVertex = bundleGraph.findOrCreate(PREFIX_VERTEX_BUNDLE + b.getBundleId());
             }
-            bundleVertex.setLabel(strip(b.getSymbolicName(), stripFromBundleName));
+            bundleVertex.setLabel(strip(getName(b), stripFromBundleName));
             bundleVertices.put(b, bundleVertex);
             for(ServiceReference ref : acceptedServices) {
                 Vertex serviceVertex = bundleGraph.findOrCreate(PREFIX_SERVICEREF + ref.getProperty(Constants.SERVICE_ID));
