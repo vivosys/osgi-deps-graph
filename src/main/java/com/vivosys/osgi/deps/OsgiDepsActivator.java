@@ -11,9 +11,18 @@ import org.slf4j.LoggerFactory;
 import java.io.FileWriter;
 import java.io.Writer;
 
+/**
+ *  Create dependency graph for all the bundles with start level specified by 
+ *  the system property "com.vivosys.min.startlevel.depends.graph".
+ *  
+ *  The default level is 1.
+ */
 public class OsgiDepsActivator implements BundleActivator {
 
     private static final Logger logger = LoggerFactory.getLogger(OsgiDepsActivator.class);
+
+    public static final String MIN_START_LEVEL_PROPERTY = "com.vivosys.min.startlevel.depends.graph";
+    private static final int DEFAULT_MIN_START_LEVEL = 1;
 
     public void start(BundleContext bundleContext) throws Exception {
         Graph graph;
@@ -26,7 +35,9 @@ public class OsgiDepsActivator implements BundleActivator {
             // to make names shorter, given prefix text can be stripped from service names
             builder.addStripFromServiceName("org.springframework.data.mongodb.");
             builder.addStripFromServiceName("org.springframework.integration.");
-            graph = builder.buildGraph(bundleContext, 50);
+            
+            int minStartLevel =  loadMinStartLevel();
+            graph = builder.buildGraph(bundleContext, minStartLevel);
         } catch (Exception e) {
             logger.error("Error building graph.", e);
             throw e;
@@ -49,4 +60,20 @@ public class OsgiDepsActivator implements BundleActivator {
     public void stop(BundleContext bundleContext) throws Exception {
     }
 
+    private static int loadMinStartLevel() {
+        String minStartLevel = System.getProperty(MIN_START_LEVEL_PROPERTY);
+        Integer retVal = DEFAULT_MIN_START_LEVEL;
+        
+        logger.info("Loading property {} to specify minimal relevant start level for OSGi deps graph", MIN_START_LEVEL_PROPERTY);
+        
+        if (minStartLevel != null) {
+            try {
+                retVal = Integer.parseInt(minStartLevel);
+            } catch (NumberFormatException  e) {
+                logger.error("Property {} not in numeric format: {}", MIN_START_LEVEL_PROPERTY, minStartLevel);
+            }
+        }
+        logger.info("Building deps graph for start levels {} or above", retVal);
+        return retVal;      
+    }
 }
